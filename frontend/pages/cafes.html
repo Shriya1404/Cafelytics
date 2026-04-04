@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Cafes - Cafelytics</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<div class="container">
+
+    <aside class="sidebar">
+        <h2 class="logo">☕ Cafelytics</h2>
+        <nav>
+            <a href="dashboard.html">Dashboard</a>
+            <a class="active">Cafes</a>
+            <a href="upload.html">Upload Sales</a>
+        </nav>
+    </aside>
+
+    <main class="main">
+
+        <h1>Your Cafes</h1>
+
+        <div class="cafe-form">
+            <input type="text" id="cafeName" placeholder="Cafe Name">
+            <input type="text" id="cafeLocation" placeholder="Location">
+            <button onclick="addCafe()">Add Cafe</button>
+        </div>
+
+        <div id="cafeError"
+             style="color:red;font-size:13px;margin-top:8px;display:none">
+        </div>
+
+        <div id="cafeList" class="cafe-list"></div>
+
+    </main>
+
+</div>
+
+<script src="../config.js"></script>
+<script src="../api.js"></script>
+<script src="../js/cafes.js"></script>
+
+</body>
+</html>

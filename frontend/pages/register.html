@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - Cafelytics</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body class="auth-body">
+
+<section class="auth-shell">
+    <div class="auth-panel auth-panel-copy">
+        <p class="eyebrow">Build your cafe control room</p>
+        <h1>Register once. Understand your business every day.</h1>
+        <p class="auth-copy">
+            Cafelytics turns uploaded sales data into a dashboard that is easy
+            to scan, explain, and act on.
+        </p>
+        <div class="auth-highlights">
+            <div>
+                <strong>For owners and operators</strong>
+                <span>Keep revenue, orders, and best items in one place.</span>
+            </div>
+            <div>
+                <strong>Readable analytics</strong>
+                <span>Use trends, product charts, and category mix without extra setup.</span>
+            </div>
+            <div>
+                <strong>Local-first workflow</strong>
+                <span>Works cleanly with your local frontend and Flask backend.</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="auth-panel auth-container">
+        <p class="eyebrow">Create your account</p>
+        <h2>Start with Cafelytics</h2>
+
+        <form id="registerForm">
+            <input type="text" id="registerName" placeholder="Full Name" required>
+            <input type="email" id="registerEmail" placeholder="Email" required>
+            <input type="password" id="registerPassword" placeholder="Password" required>
+            <button type="submit">Register</button>
+        </form>
+
+        <div id="registerError" class="form-error"></div>
+
+        <p class="auth-footer">
+            Already have an account?
+            <a href="login.html">Login</a>
+        </p>
+    </div>
+</section>
+
+<script src="../config.js"></script>
+<script src="../api.js"></script>
+<script src="../js/auth.js"></script>
+
+</body>
+</html>

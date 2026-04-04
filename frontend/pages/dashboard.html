@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cafelytics Dashboard</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<div class="container">
+    <aside class="sidebar">
+        <div>
+            <p class="eyebrow">Cafelytics</p>
+            <h2 class="logo">Cafe command center</h2>
+            <p class="sidebar-copy">
+                A focused view of sales, menu performance, and recent momentum.
+            </p>
+        </div>
+
+        <nav>
+            <a class="active" href="dashboard.html">Dashboard</a>
+            <a href="cafes.html">Cafes</a>
+            <a href="upload.html">Upload Sales</a>
+        </nav>
+    </aside>
+
+    <main class="main dashboard-main">
+        <header class="topbar">
+            <div>
+                <p class="eyebrow">Performance overview</p>
+                <h1>Dashboard</h1>
+                <p id="dashboardSubtitle" class="page-subtitle">
+                    Cafe performance at a glance.
+                </p>
+            </div>
+
+            <div class="top-actions">
+                <select id="cafeSwitcher" aria-label="Select cafe"></select>
+                <select id="dateFilter" aria-label="Select date range">
+                    <option value="7">Last 7 Days</option>
+                    <option value="30">Last 30 Days</option>
+                    <option value="month">This Month</option>
+                </select>
+                <button id="themeToggle" type="button">Toggle theme</button>
+                <button class="logout-btn" type="button" onclick="auth.logout()">
+                    Logout
+                </button>
+            </div>
+        </header>
+
+        <section class="dashboard-hero">
+            <div class="hero-copy">
+                <p class="hero-label">Selected cafe</p>
+                <h2 id="heroCafeName">Cafe overview</h2>
+                <p id="heroCafeMeta" class="hero-meta">Waiting for data</p>
+
+                <div class="hero-metrics">
+                    <div>
+                        <span>Revenue</span>
+                        <strong id="heroRevenue">Rs. 0</strong>
+                    </div>
+                    <div>
+                        <span>Orders</span>
+                        <strong id="heroOrders">0 orders</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hero-side">
+                <div class="trend-card">
+                    <span class="hero-label">Trend</span>
+                    <strong id="trendBadge" class="trend-badge flat">Waiting for data</strong>
+                    <p id="rangeLabel" class="trend-caption">Selected period</p>
+                </div>
+
+                <div class="hero-actions">
+                    <a href="upload.html" class="dashboard-link-button">Upload new sales</a>
+                    <a href="cafes.html" class="dashboard-link-button secondary">Manage cafes</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="kpi-grid">
+            <article class="kpi-card">
+                <h4>Total Revenue</h4>
+                <p id="kpiRevenue">Rs. 0</p>
+                <span id="kpiRevenueHint">Track recent sales pace</span>
+            </article>
+            <article class="kpi-card">
+                <h4>Total Orders</h4>
+                <p id="kpiOrders">0</p>
+                <span id="kpiOrdersHint">0 units sold</span>
+            </article>
+            <article class="kpi-card">
+                <h4>Avg Order Value</h4>
+                <p id="kpiAvg">Rs. 0</p>
+                <span id="kpiAvgHint">Upload sales to improve this reading</span>
+            </article>
+            <article class="kpi-card">
+                <h4>Top Product</h4>
+                <p id="kpiProduct">No sales yet</p>
+                <span id="kpiProductHint">Leading category will appear here</span>
+            </article>
+        </section>
+
+        <section id="dashboardEmptyState" class="dashboard-empty-state" style="display:none"></section>
+
+        <section class="analytics-grid">
+            <article class="analytics-box analytics-box-wide">
+                <div class="panel-header">
+                    <div>
+                        <p class="eyebrow">Revenue flow</p>
+                        <h3>Daily Revenue</h3>
+                    </div>
+                </div>
+                <div class="chart-frame">
+                    <canvas id="revenueChart"></canvas>
+                </div>
+            </article>
+
+            <article class="analytics-box">
+                <div class="panel-header">
+                    <div>
+                        <p class="eyebrow">Product leaders</p>
+                        <h3>Top Product Sales</h3>
+                    </div>
+                </div>
+                <div class="chart-frame">
+                    <canvas id="productChart"></canvas>
+                </div>
+            </article>
+
+            <article class="analytics-box">
+                <div class="panel-header">
+                    <div>
+                        <p class="eyebrow">Category mix</p>
+                        <h3>Category Distribution</h3>
+                    </div>
+                </div>
+                <div class="chart-frame">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </article>
+
+            <article class="analytics-box">
+                <div class="panel-header">
+                    <div>
+                        <p class="eyebrow">Longer view</p>
+                        <h3>Monthly Revenue</h3>
+                    </div>
+                </div>
+                <div class="chart-frame">
+                    <canvas id="monthlyChart"></canvas>
+                </div>
+            </article>
+
+            <article class="analytics-box">
+                <div class="panel-header">
+                    <div>
+                        <p class="eyebrow">Selling pattern</p>
+                        <h3>Orders by Weekday</h3>
+                    </div>
+                </div>
+                <div class="chart-frame">
+                    <canvas id="weekdayChart"></canvas>
+                </div>
+            </article>
+
+            <article class="analytics-box">
+                <div class="panel-header">
+                    <div>
+                        <p class="eyebrow">Daily intensity</p>
+                        <h3>Sales Heatmap</h3>
+                    </div>
+                </div>
+                <div id="heatmap" class="heatmap-grid"></div>
+            </article>
+
+            <article class="analytics-box analytics-box-wide">
+                <div class="panel-header">
+                    <div>
+                        <p class="eyebrow">Business guidance</p>
+                        <h3>Recommended Insights</h3>
+                    </div>
+                </div>
+                <div id="insightsBox" class="insights-box"></div>
+            </article>
+        </section>
+
+        <div id="notification" class="notification"></div>
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="../config.js"></script>
+<script src="../api.js"></script>
+<script src="../js/dashboard.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Upload Sales | Cafelytics</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<div class="container">
+
+    <aside class="sidebar">
+        <h2 class="logo">☕ Cafelytics</h2>
+        <nav>
+            <a href="dashboard.html">Dashboard</a>
+            <a href="cafes.html">Cafes</a>
+            <a class="active" href="upload.html">Upload Sales</a>
+        </nav>
+    </aside>
+
+    <main class="main">
+
+        <h1>Upload Monthly Sales</h1>
+
+        <div id="dropZone" class="drop-zone">
+            <p>Drag & Drop CSV File Here</p>
+            <input type="file" id="csvFile" hidden accept=".csv">
+            <button onclick="document.getElementById('csvFile').click()">
+                Browse File
+            </button>
+        </div>
+
+        <div class="upload-actions" style="margin-top:16px">
+            <button onclick="previewCSV()"
+                    style="padding:10px 20px;background:#3b82f6;
+                           color:white;border:none;border-radius:6px;
+                           cursor:pointer">
+                Preview Data
+            </button>
+        </div>
+
+        <table id="previewTable" class="preview-table"></table>
+
+    </main>
+
+</div>
+
+<script src="../config.js"></script>
+<script src="../api.js"></script>
+<script src="../js/upload.js"></script>
+
+</body>
+</html>

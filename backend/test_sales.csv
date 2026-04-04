@@ -1,0 +1,11 @@
+product_name,category,price,quantity,total_amount,sale_date
+Cappuccino,Coffee,120,5,600,2026-03-15
+Espresso,Coffee,80,8,640,2026-03-15
+Chocolate Cake,Dessert,150,3,450,2026-03-15
+Sandwich,Food,100,6,600,2026-03-16
+Latte,Coffee,130,4,520,2026-03-16
+Muffin,Dessert,60,10,600,2026-03-17
+Cold Coffee,Coffee,110,7,770,2026-03-17
+Pasta,Food,180,2,360,2026-03-18
+Green Tea,Beverages,90,5,450,2026-03-18
+Brownie,Dessert,80,4,320,2026-03-19
