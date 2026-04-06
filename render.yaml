@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: cafelytics-api
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn run:app
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: cafelytics-db
+          property: connectionString
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: FLASK_ENV
+        value: production
+
+databases:
+  - name: cafelytics-db
+    plan: free
