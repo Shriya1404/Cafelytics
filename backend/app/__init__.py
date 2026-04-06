@@ -19,13 +19,15 @@ def create_app():
     jwt.init_app(app)
 
     CORS(app, resources={
-        r"/api/*": {
-            "origins": [
-                r"http://localhost(:\d+)?",
-                r"http://127\.0\.0\.1(:\d+)?"
-            ]
-        }
-    })
+    r"/api/*": {
+        "origins": [
+            "http://localhost:5500",
+            "http://127.0.0.1:5500",
+            "https://cafelytics-olive.vercel.app",
+            "https://cafelytics-api.onrender.com"
+        ]
+    }
+})
 
     from app import models
 
