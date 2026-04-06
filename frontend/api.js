@@ -1,7 +1,34 @@
-const BASE_URL = (
-    window.CAFELYTICS_CONFIG?.API_BASE_URL ||
-    "https://cafelytics-api.onrender.com/api"
-).replace(/\/$/, "");
+const DEFAULT_BASE_URL = "https://cafelytics-api.onrender.com/api";
+
+function isLoopbackUrl(value) {
+    try {
+        const parsedUrl = new URL(value);
+        return ["127.0.0.1", "localhost"].includes(parsedUrl.hostname);
+    } catch (error) {
+        return false;
+    }
+}
+
+function isLocalPage() {
+    return ["127.0.0.1", "localhost"].includes(window.location.hostname);
+}
+
+function resolveBaseUrl() {
+    const configuredBaseUrl = window.CAFELYTICS_CONFIG?.API_BASE_URL?.replace(/\/$/, "");
+
+    if (!configuredBaseUrl) {
+        return DEFAULT_BASE_URL;
+    }
+
+    // Ignore localhost overrides when the frontend is running on a public host.
+    if (!isLocalPage() && isLoopbackUrl(configuredBaseUrl)) {
+        return DEFAULT_BASE_URL;
+    }
+
+    return configuredBaseUrl;
+}
+
+const BASE_URL = resolveBaseUrl();
 const LOGIN_PAGE = "login.html";
 const DASHBOARD_PAGE = "dashboard.html";
 
