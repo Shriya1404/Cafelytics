@@ -201,6 +201,7 @@ body.dark-mode .sidebar {
 }
 
 .top-actions select,
+#downloadReportBtn,
 #themeToggle,
 .logout-btn,
 .dashboard-link-button,
@@ -215,11 +216,16 @@ body.dark-mode .sidebar {
 }
 
 .top-actions select,
+#downloadReportBtn,
 #themeToggle {
     background: var(--bg-elevated);
     color: var(--text);
     border: 1px solid var(--border);
     box-shadow: 0 10px 24px rgba(84, 60, 38, 0.08);
+}
+
+#downloadReportBtn {
+    font-weight: 600;
 }
 
 .logout-btn,
@@ -234,6 +240,7 @@ body.dark-mode .sidebar {
 }
 
 #themeToggle:hover,
+#downloadReportBtn:hover,
 .logout-btn:hover,
 .dashboard-link-button:hover,
 .auth-container button:hover,
@@ -241,6 +248,14 @@ body.dark-mode .sidebar {
 .upload-actions button:hover,
 #uploadNowBtn:hover {
     transform: translateY(-2px);
+}
+
+#downloadReportBtn:disabled,
+.dashboard-link-button:disabled {
+    opacity: 0.58;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
 }
 
 .dashboard-link-button.secondary {

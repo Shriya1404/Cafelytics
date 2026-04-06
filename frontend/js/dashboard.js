@@ -7,6 +7,7 @@ let productChartInstance = null;
 let categoryChartInstance = null;
 let monthlyChartInstance = null;
 let weekdayChartInstance = null;
+let dashboardReportState = null;
 
 const DAYS_IN_RANGE = {
     "7": 7,
@@ -19,10 +20,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const themeToggle = document.getElementById("themeToggle");
     const cafeSwitcher = document.getElementById("cafeSwitcher");
     const dateFilter = document.getElementById("dateFilter");
+    const downloadButton = document.getElementById("downloadReportBtn");
 
     themeToggle.addEventListener("click", toggleTheme);
     cafeSwitcher.addEventListener("change", loadDashboard);
     dateFilter.addEventListener("change", loadDashboard);
+    downloadButton.addEventListener("click", downloadAnalysisReport);
+
+    setReportButtonsDisabled(true);
 
     loadCafeSwitcher();
 });
@@ -83,6 +88,20 @@ async function loadDashboard() {
         const currentCafe = cafes.find(cafe => String(cafe.id) === String(cafeId));
         const filteredRevenue = revenue.breakdown || [];
         const trend = calculateTrend(filteredRevenue);
+        const insights = buildInsights(summary, products, categories, trend, range);
+
+        dashboardReportState = {
+            cafe: currentCafe || null,
+            range,
+            summary,
+            revenue,
+            monthly,
+            products,
+            categories,
+            trend,
+            insights,
+            generatedAt: new Date().toISOString()
+        };
 
         renderHeader(currentCafe, summary, range, trend);
         renderKPIs(summary, trend);
@@ -92,11 +111,14 @@ async function loadDashboard() {
         renderCategoryChart(categories);
         renderWeekdayChart(filteredRevenue);
         renderHeatmap(filteredRevenue);
-        renderInsights(summary, products, categories, trend, range);
+        renderInsights(insights);
         renderEmptyStateMessage(summary, filteredRevenue);
+        setReportButtonsDisabled(false);
 
         showNotification("Dashboard updated.", "success");
     } catch (error) {
+        dashboardReportState = null;
+        setReportButtonsDisabled(true);
         renderEmptyDashboard(error.message);
         showNotification(`Failed to load dashboard: ${error.message}`, "error");
     } finally {
@@ -340,13 +362,12 @@ function renderHeatmap(breakdown) {
     }).join("");
 }
 
-function renderInsights(summary, products, categories, trend, range) {
-    const box = document.getElementById("insightsBox");
+function buildInsights(summary, products, categories, trend, range) {
     const topProduct = products.products[0];
     const lowProduct = products.products[products.products.length - 1];
     const topCategory = categories.categories[0];
 
-    const insights = [
+    return [
         {
             title: "Best seller",
             body: topProduct
@@ -376,7 +397,10 @@ function renderInsights(summary, products, categories, trend, range) {
                 : "Once more products are tracked, weaker performers will appear here."
         }
     ];
+}
 
+function renderInsights(insights) {
+    const box = document.getElementById("insightsBox");
     box.innerHTML = insights.map(insight => `
         <article class="insight-card">
             <h4>${insight.title}</h4>
@@ -402,6 +426,8 @@ function renderEmptyStateMessage(summary, breakdown) {
 }
 
 function renderEmptyDashboard(message) {
+    dashboardReportState = null;
+    setReportButtonsDisabled(true);
     document.getElementById("dashboardSubtitle").textContent =
         "Dashboard data is currently unavailable.";
     document.getElementById("heroCafeName").textContent = "Dashboard unavailable";
@@ -584,6 +610,13 @@ function setLoadingState(isLoading) {
     document.body.classList.toggle("dashboard-loading", isLoading);
 }
 
+function setReportButtonsDisabled(isDisabled) {
+    const button = document.getElementById("downloadReportBtn");
+    if (button) {
+        button.disabled = isDisabled;
+    }
+}
+
 function showNotification(message, type = "success") {
     const notification = document.getElementById("notification");
     notification.textContent = message;
@@ -624,4 +657,405 @@ function updateThemeToggleLabel() {
     themeToggle.textContent = document.body.classList.contains("dark-mode")
         ? "Use light theme"
         : "Use dark theme";
+}
+
+function downloadAnalysisReport() {
+    if (!dashboardReportState) {
+        showNotification("Load dashboard data before downloading the report.", "error");
+        return;
+    }
+
+    const reportHtml = buildReportHtml(dashboardReportState);
+    const cafeName = dashboardReportState.cafe?.name || "cafe";
+    const fileName = `${slugify(cafeName)}-${dashboardReportState.range}-analysis-report.docx`;
+    let blob = null;
+
+    if (window.htmlDocx?.asBlob) {
+        blob = window.htmlDocx.asBlob(reportHtml, {
+            orientation: "portrait",
+            margins: {
+                top: 720,
+                right: 720,
+                bottom: 720,
+                left: 720
+            }
+        });
+    } else {
+        blob = new Blob(
+            ["\ufeff", reportHtml],
+            { type: "application/msword;charset=utf-8" }
+        );
+    }
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+
+    showNotification("Analysis report downloaded as Word document.", "success");
+}
+
+function buildReportHtml(reportState) {
+    const {
+        cafe,
+        range,
+        summary,
+        revenue,
+        monthly,
+        products,
+        categories,
+        trend,
+        insights,
+        generatedAt
+    } = reportState;
+
+    const title = `${cafe?.name || "Cafe"} Analysis Report`;
+    const location = cafe?.location || "Location not set";
+    const productRows = products.products.slice(0, 10).map(product => `
+        <tr>
+            <td>${escapeHtml(product.name)}</td>
+            <td>${escapeHtml(product.category || "Uncategorized")}</td>
+            <td>${formatNumber(product.total_units)}</td>
+            <td>${formatCurrency(product.total_revenue)}</td>
+            <td>${product.revenue_share}%</td>
+        </tr>
+    `).join("");
+    const categoryRows = categories.categories.map(category => `
+        <tr>
+            <td>${escapeHtml(category.category)}</td>
+            <td>${formatNumber(category.total_units)}</td>
+            <td>${formatCurrency(category.total_revenue)}</td>
+            <td>${category.revenue_share}%</td>
+        </tr>
+    `).join("");
+    const dailyRows = revenue.breakdown.map(item => `
+        <tr>
+            <td>${escapeHtml(formatDateLabel(item.period))}</td>
+            <td>${formatCurrency(item.revenue)}</td>
+            <td>${formatNumber(item.units_sold)}</td>
+            <td>${formatNumber(item.total_orders)}</td>
+        </tr>
+    `).join("");
+    const monthlyRows = monthly.breakdown.map(item => `
+        <tr>
+            <td>${escapeHtml(item.period)}</td>
+            <td>${formatCurrency(item.revenue)}</td>
+            <td>${formatNumber(item.units_sold)}</td>
+            <td>${formatNumber(item.total_orders)}</td>
+        </tr>
+    `).join("");
+    const insightCards = insights.map(insight => `
+        <article class="insight">
+            <h3>${escapeHtml(insight.title)}</h3>
+            <p>${escapeHtml(insight.body)}</p>
+        </article>
+    `).join("");
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${escapeHtml(title)}</title>
+    <style>
+        :root {
+            color-scheme: light;
+            --ink: #2f241f;
+            --muted: #705c50;
+            --accent: #c7683d;
+            --accent-soft: #ffe7d6;
+            --surface: #fffaf5;
+            --surface-strong: #ffffff;
+            --border: #e8d8ca;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            padding: 32px;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(180deg, #fff9f2 0%, #f6ede4 100%);
+            color: var(--ink);
+        }
+        .report-shell {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: grid;
+            gap: 24px;
+        }
+        .hero, .section, .metric {
+            background: rgba(255, 255, 255, 0.94);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+        }
+        .hero {
+            padding: 28px;
+            background: linear-gradient(135deg, #fff3e8, #fffdfb);
+        }
+        .eyebrow {
+            font-size: 12px;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--accent);
+            font-weight: 700;
+        }
+        h1, h2, h3, p {
+            margin: 0;
+        }
+        h1 {
+            font-size: 40px;
+            margin-top: 10px;
+        }
+        .hero-meta {
+            margin-top: 12px;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 16px;
+        }
+        .metric {
+            padding: 20px;
+        }
+        .metric span {
+            display: block;
+            color: var(--muted);
+            margin-bottom: 10px;
+        }
+        .metric strong {
+            font-size: 28px;
+        }
+        .section {
+            padding: 24px;
+        }
+        .section-header {
+            margin-bottom: 18px;
+        }
+        .section-header p {
+            margin-top: 8px;
+            color: var(--muted);
+        }
+        .insight-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+        }
+        .insight {
+            padding: 18px;
+            border-radius: 18px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+        }
+        .insight p {
+            margin-top: 8px;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            overflow: hidden;
+            border-radius: 18px;
+            border: 1px solid var(--border);
+        }
+        th, td {
+            padding: 14px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        th {
+            background: var(--accent-soft);
+        }
+        .empty {
+            color: var(--muted);
+            padding: 18px;
+            border-radius: 18px;
+            background: var(--surface);
+            border: 1px dashed var(--border);
+        }
+        @media print {
+            body {
+                padding: 0;
+                background: #fff;
+            }
+            .hero, .section, .metric {
+                box-shadow: none;
+                break-inside: avoid;
+            }
+        }
+        @media (max-width: 800px) {
+            body {
+                padding: 18px;
+            }
+            .metric-grid, .insight-grid {
+                grid-template-columns: 1fr;
+            }
+            h1 {
+                font-size: 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="report-shell">
+        <section class="hero">
+            <p class="eyebrow">Cafelytics analysis report</p>
+            <h1>${escapeHtml(title)}</h1>
+            <p class="hero-meta">
+                ${escapeHtml(location)}<br>
+                Reporting period: ${escapeHtml(formatRangeLabel(range))}<br>
+                Generated: ${escapeHtml(formatDateTimeLabel(generatedAt))}
+            </p>
+        </section>
+
+        <section class="metric-grid">
+            <article class="metric">
+                <span>Total Revenue</span>
+                <strong>${formatCurrency(summary.total_revenue)}</strong>
+            </article>
+            <article class="metric">
+                <span>Total Orders</span>
+                <strong>${formatNumber(summary.total_orders)}</strong>
+            </article>
+            <article class="metric">
+                <span>Avg Order Value</span>
+                <strong>${formatCurrency(summary.avg_order_value)}</strong>
+            </article>
+            <article class="metric">
+                <span>Trend</span>
+                <strong>${escapeHtml(trend.label)}</strong>
+            </article>
+        </section>
+
+        <section class="section">
+            <div class="section-header">
+                <p class="eyebrow">Key findings</p>
+                <h2>Recommended insights</h2>
+                <p>Highlights generated from the selected cafe and date range in a simple text format.</p>
+            </div>
+            <div class="insight-grid">
+                ${insightCards}
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="section-header">
+                <p class="eyebrow">Revenue timeline</p>
+                <h2>Daily performance</h2>
+                <p>Revenue, units sold, and order counts for the selected range.</p>
+            </div>
+            ${dailyRows ? `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Revenue</th>
+                            <th>Units Sold</th>
+                            <th>Orders</th>
+                        </tr>
+                    </thead>
+                    <tbody>${dailyRows}</tbody>
+                </table>
+            ` : '<div class="empty">No daily revenue data is available for this range.</div>'}
+        </section>
+
+        <section class="section">
+            <div class="section-header">
+                <p class="eyebrow">Monthly view</p>
+                <h2>Monthly revenue breakdown</h2>
+                <p>Longer-horizon revenue data for the selected cafe.</p>
+            </div>
+            ${monthlyRows ? `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Month</th>
+                            <th>Revenue</th>
+                            <th>Units Sold</th>
+                            <th>Orders</th>
+                        </tr>
+                    </thead>
+                    <tbody>${monthlyRows}</tbody>
+                </table>
+            ` : '<div class="empty">No monthly revenue data is available yet.</div>'}
+        </section>
+
+        <section class="section">
+            <div class="section-header">
+                <p class="eyebrow">Menu leaders</p>
+                <h2>Top products</h2>
+                <p>Highest-performing products by revenue contribution.</p>
+            </div>
+            ${productRows ? `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Category</th>
+                            <th>Units Sold</th>
+                            <th>Revenue</th>
+                            <th>Revenue Share</th>
+                        </tr>
+                    </thead>
+                    <tbody>${productRows}</tbody>
+                </table>
+            ` : '<div class="empty">No product-level sales have been recorded yet.</div>'}
+        </section>
+
+        <section class="section">
+            <div class="section-header">
+                <p class="eyebrow">Category mix</p>
+                <h2>Category performance</h2>
+                <p>Revenue contribution by menu category.</p>
+            </div>
+            ${categoryRows ? `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Units Sold</th>
+                            <th>Revenue</th>
+                            <th>Revenue Share</th>
+                        </tr>
+                    </thead>
+                    <tbody>${categoryRows}</tbody>
+                </table>
+            ` : '<div class="empty">No category-level sales have been recorded yet.</div>'}
+        </section>
+    </div>
+</body>
+</html>`;
+}
+
+function formatDateTimeLabel(value) {
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+        return value;
+    }
+
+    return date.toLocaleString("en-IN", {
+        dateStyle: "medium",
+        timeStyle: "short"
+    });
+}
+
+function slugify(value) {
+    return String(value || "report")
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "") || "report";
+}
+
+function escapeHtml(value) {
+    return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
 }
