@@ -1,6 +1,6 @@
 const BASE_URL = (
     window.CAFELYTICS_CONFIG?.API_BASE_URL ||
-    "http://127.0.0.1:5000/api"
+    "https://cafelytics-api.onrender.com/api"
 ).replace(/\/$/, "");
 const LOGIN_PAGE = "login.html";
 const DASHBOARD_PAGE = "dashboard.html";
