@@ -7,3 +7,4 @@ python-dotenv
 pandas
 werkzeug
 flask-cors
+gunicorn
